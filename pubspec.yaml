@@ -1,0 +1,63 @@
+name: usta360
+description: "USTA360 - Usta ve Taşeron Yönetim Uygulaması"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Database
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.2
+  path: ^1.8.3
+
+  # Navigation
+  go_router: ^14.2.0
+
+  # UI
+  google_fonts: ^6.1.0
+
+  # Photo (safe, stable)
+  image_picker: ^1.0.5
+
+  # PDF
+  pdf: ^3.11.3
+
+  # Sharing
+  share_plus: ^10.0.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.4
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.2.2
+  permission_handler: ^11.3.1
+  file_picker: ^8.0.0
+  archive: ^3.6.1
+
+  # Material Design
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  drift_dev: ^2.14.1
+  build_runner: ^2.4.7
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
