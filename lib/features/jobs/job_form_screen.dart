@@ -229,7 +229,6 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
               status: _status,
               quotedPrice: quotedPrice,
               dueDate: drift.Value(_dueDate),
-              updatedAt: DateTime.now(),
             ),
           );
         }

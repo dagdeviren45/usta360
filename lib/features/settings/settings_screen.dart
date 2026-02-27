@@ -47,13 +47,13 @@ class SettingsScreen extends ConsumerWidget {
                   Text('🏢 Firma Bilgileri', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   _settingsItem(context, 'Firma Adı', settings.companyName ?? 'Belirtilmemiş', Icons.business,
-                    () => _editField(context, ref, 'companyName', 'Firma Adı', settings.companyName)),
+                    () => _editCompanyField(context, ref, settings, 'companyName', 'Firma Adı', settings.companyName)),
                   _settingsItem(context, 'Telefon', settings.companyPhone ?? 'Belirtilmemiş', Icons.phone,
-                    () => _editField(context, ref, 'companyPhone', 'Telefon', settings.companyPhone)),
+                    () => _editCompanyField(context, ref, settings, 'companyPhone', 'Telefon', settings.companyPhone)),
                   _settingsItem(context, 'E-posta', settings.companyEmail ?? 'Belirtilmemiş', Icons.email,
-                    () => _editField(context, ref, 'companyEmail', 'E-posta', settings.companyEmail)),
+                    () => _editCompanyField(context, ref, settings, 'companyEmail', 'E-posta', settings.companyEmail)),
                   _settingsItem(context, 'Adres', settings.companyAddress ?? 'Belirtilmemiş', Icons.location_on,
-                    () => _editField(context, ref, 'companyAddress', 'Adres', settings.companyAddress)),
+                    () => _editCompanyField(context, ref, settings, 'companyAddress', 'Adres', settings.companyAddress)),
                 ],
               ),
             ),
@@ -66,8 +66,8 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Text('📊 Varsayılan Ayarlar', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  _settingsItem(context, 'Kâr Oranı', '%${settings.defaultProfitRate.toStringAsFixed(0)}', Icons.trending_up,
-                    () => _editNumberField(context, ref, 'defaultProfitRate', 'Varsayılan Kâr Oranı (%)', settings.defaultProfitRate)),
+                  _settingsItem(context, 'Kâr Oranı', '%${settings.defaultProfitMargin.toStringAsFixed(0)}', Icons.trending_up,
+                    () => _editProfitMargin(context, ref, settings)),
                 ],
               ),
             ),
@@ -81,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
                   Text('📄 PDF Ayarları', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   _settingsItem(context, 'Alt Not', settings.pdfFooterNote ?? 'Belirtilmemiş', Icons.note,
-                    () => _editField(context, ref, 'pdfFooterNote', 'PDF Alt Not', settings.pdfFooterNote)),
+                    () => _editPdfFooterNote(context, ref, settings)),
                 ],
               ),
             ),
@@ -119,7 +119,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _editField(BuildContext context, WidgetRef ref, String field, String label, String? currentValue) {
+  void _editCompanyField(BuildContext context, WidgetRef ref, AppSetting settings, String field, String label, String? currentValue) {
     final controller = TextEditingController(text: currentValue);
     showDialog(
       context: context,
@@ -130,7 +130,26 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
           ElevatedButton(
             onPressed: () async {
-              await ref.read(settingsDaoProvider).updateField(field, controller.text.trim());
+              final val = controller.text.trim();
+              // Mevcut ayarları al ve güncellenmiş versiyonunu kaydet
+              switch (field) {
+                case 'companyName':
+                  await ref.read(settingsDaoProvider).updateSettings(
+                    settings.copyWith(companyName: drift.Value(val.isNotEmpty ? val : null)));
+                  break;
+                case 'companyPhone':
+                  await ref.read(settingsDaoProvider).updateSettings(
+                    settings.copyWith(companyPhone: drift.Value(val.isNotEmpty ? val : null)));
+                  break;
+                case 'companyEmail':
+                  await ref.read(settingsDaoProvider).updateSettings(
+                    settings.copyWith(companyEmail: drift.Value(val.isNotEmpty ? val : null)));
+                  break;
+                case 'companyAddress':
+                  await ref.read(settingsDaoProvider).updateSettings(
+                    settings.copyWith(companyAddress: drift.Value(val.isNotEmpty ? val : null)));
+                  break;
+              }
               ref.invalidate(settingsProvider);
               Navigator.pop(ctx);
             },
@@ -141,24 +160,53 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _editNumberField(BuildContext context, WidgetRef ref, String field, String label, double currentValue) {
-    final controller = TextEditingController(text: currentValue.toStringAsFixed(0));
+  void _editProfitMargin(BuildContext context, WidgetRef ref, AppSetting settings) {
+    final controller = TextEditingController(text: settings.defaultProfitMargin.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(label),
+        title: const Text('Varsayılan Kâr Oranı (%)'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(labelText: label),
+          decoration: const InputDecoration(labelText: 'Kâr Oranı (%)', suffixText: '%'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
           ElevatedButton(
             onPressed: () async {
-              final value = double.tryParse(controller.text) ?? currentValue;
-              await ref.read(settingsDaoProvider).updateField(field, value.toString());
+              final value = double.tryParse(controller.text) ?? settings.defaultProfitMargin;
+              await ref.read(settingsDaoProvider).updateDefaultProfitMargin(value);
+              ref.invalidate(settingsProvider);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editPdfFooterNote(BuildContext context, WidgetRef ref, AppSetting settings) {
+    final controller = TextEditingController(text: settings.pdfFooterNote);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('PDF Alt Not'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 3,
+          decoration: const InputDecoration(labelText: 'Alt Not'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(settingsDaoProvider).updateSettings(
+                settings.copyWith(pdfFooterNote: drift.Value(controller.text.trim().isNotEmpty ? controller.text.trim() : null)),
+              );
               ref.invalidate(settingsProvider);
               Navigator.pop(ctx);
             },
