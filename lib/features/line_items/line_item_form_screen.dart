@@ -47,7 +47,7 @@ class _LineItemFormScreenState extends ConsumerState<LineItemFormScreen> {
         _quantityController.text = item.quantity.toString();
         _costController.text = item.costPerUnit.toString();
         _saleController.text = item.salePerUnit.toString();
-        _notesController.text = item.notes ?? '';
+        _notesController.text = item.description ?? '';
         _type = item.type;
         _unit = item.unit;
       });
@@ -232,7 +232,7 @@ class _LineItemFormScreenState extends ConsumerState<LineItemFormScreen> {
               quantity: quantity,
               costPerUnit: costPerUnit,
               salePerUnit: salePerUnit,
-              notes: drift.Value(_notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null),
+              description: drift.Value(_notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null),
             ),
           );
         }
@@ -246,7 +246,7 @@ class _LineItemFormScreenState extends ConsumerState<LineItemFormScreen> {
             quantity: drift.Value(quantity),
             costPerUnit: drift.Value(costPerUnit),
             salePerUnit: drift.Value(salePerUnit),
-            notes: drift.Value(_notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null),
+            description: drift.Value(_notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null),
           ),
         );
       }

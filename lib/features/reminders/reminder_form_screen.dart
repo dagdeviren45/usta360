@@ -112,9 +112,9 @@ class _ReminderFormScreenState extends ConsumerState<ReminderFormScreen> {
         RemindersCompanion.insert(
           title: _titleController.text.trim(),
           scheduledAt: scheduledAt,
-          jobId: drift.Value(widget.jobId),
+          jobId: widget.jobId ?? 0,
           description: drift.Value(_descriptionController.text.trim().isNotEmpty ? _descriptionController.text.trim() : null),
-          notificationId: drift.Value(notificationId),
+          notificationId: notificationId,
         ),
       );
 

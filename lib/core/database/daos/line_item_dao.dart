@@ -9,6 +9,11 @@ class LineItemDao extends DatabaseAccessor<AppDatabase>
     with _$LineItemDaoMixin {
   LineItemDao(super.db);
 
+  /// Tek kalem getir (ID ile)
+  Future<LineItem?> getItemById(int id) {
+    return (select(lineItems)..where((l) => l.id.equals(id))).getSingleOrNull();
+  }
+
   /// İşe ait tüm kalemleri getir
   Future<List<LineItem>> getItemsByJob(int jobId) {
     return (select(lineItems)
