@@ -10,8 +10,10 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.usta360pro.com
       flutter: stable
-      xcode: latest
+      xcode: 16.2
       cocoapods: default
+      vars:
+        APP_STORE_APP_ID: "APPLE_APP_ID_BURAYA"
     scripts:
       - name: Set up code signing settings on Xcode project
         script: |
@@ -22,9 +24,6 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install
-      - name: Flutter analyze
-        script: |
-          flutter analyze || true
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
@@ -43,8 +42,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        beta_groups:
-          - Internal Testing
 
   android-workflow:
     name: Android Release
@@ -57,9 +54,6 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Flutter analyze
-        script: |
-          flutter analyze || true
       - name: Flutter build AAB
         script: |
           flutter build appbundle --release \
