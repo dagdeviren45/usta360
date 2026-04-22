@@ -11,7 +11,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.usta360pro.com"
+    namespace = "com.usta360.usta360"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.usta360pro.com"
+        applicationId = "com.usta360.usta360"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

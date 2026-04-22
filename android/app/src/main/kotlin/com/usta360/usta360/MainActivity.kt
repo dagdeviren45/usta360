@@ -1,4 +1,4 @@
-package com.usta360pro.com
+package com.usta360.usta360
 
 import io.flutter.embedding.android.FlutterActivity
 
