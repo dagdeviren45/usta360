@@ -253,7 +253,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
         ),
       );
 
-      final lineItems = await ref.read(jobDaoProvider).getJobLineItems(job.id);
+      final lineItems = await ref.read(lineItemDaoProvider).getItemsByJob(job.id);
       final settings = await ref.read(settingsDaoProvider).getSettings();
       
       final pdfService = ref.read(pdfServiceProvider);
@@ -261,7 +261,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
         job: job,
         customer: customer,
         lineItems: lineItems,
-        settings: settings ?? AppSetting(id: 1),
+        settings: settings,
       );
 
       if (mounted) {
