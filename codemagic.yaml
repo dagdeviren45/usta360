@@ -6,6 +6,9 @@ workflows:
     integrations:
       app_store_connect: usta360
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.usta360pro2.com
       flutter: stable
       xcode: 16.2
       cocoapods: default
@@ -13,11 +16,6 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter pub get
-      - name: Set up code signing
-        script: |
-          app-store-connect fetch-signing-files "com.usta360pro2.com" --type IOS_APP_STORE --create
-          keychain initialize
-          keychain add-certificates
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install
