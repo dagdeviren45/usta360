@@ -11,6 +11,8 @@ import '../../core/services/pdf_service.dart';
 import '../../core/services/photo_service.dart';
 import '../../core/database/database.dart';
 import '../../core/theme/app_colors.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/services/ad_helper.dart';
 
 class JobDetailScreen extends ConsumerStatefulWidget {
   final int jobId;
@@ -102,8 +104,16 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
                   ),
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onSelected: (action) => _handleAction(action, job),
+                    onSelected: (action) => _handleAction(action, jobWithCustomer),
                     itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'pdf',
+                        child: Row(children: [
+                          Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
+                          SizedBox(width: 8),
+                          Text('PDF Teklif Oluştur', style: TextStyle(color: Colors.blue)),
+                        ]),
+                      ),
                       const PopupMenuItem(
                         value: 'delete',
                         child: Row(children: [
@@ -153,7 +163,14 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
     );
   }
 
-  void _handleAction(String action, Job job) async {
+  void _handleAction(String action, dynamic jobWithCustomer) async {
+    final job = jobWithCustomer.job;
+    
+    if (action == 'pdf') {
+      _showRewardedAdAndGeneratePdf(jobWithCustomer);
+      return;
+    }
+
     if (action == 'delete') {
       final confirm = await showDialog<bool>(
         context: context,
@@ -177,6 +194,86 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
         ref.invalidate(recentJobsProvider);
         ref.invalidate(jobCountProvider);
         if (mounted) context.pop();
+      }
+    }
+  }
+
+  void _showRewardedAdAndGeneratePdf(dynamic jobWithCustomer) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    RewardedInterstitialAd.load(
+      adUnitId: AdHelper.pdfRewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          Navigator.pop(context); // Close loading dialog
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _generatePdf(jobWithCustomer);
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              ad.dispose();
+              _generatePdf(jobWithCustomer);
+            },
+          );
+          ad.show(onUserEarnedReward: (ad, reward) {
+            // Reward earned
+          });
+        },
+        onAdFailedToLoad: (error) {
+          debugPrint('RewardedInterstitialAd failed to load: $error');
+          Navigator.pop(context); // Close loading dialog
+          _generatePdf(jobWithCustomer); // Proceed even if ad fails
+        },
+      ),
+    );
+  }
+
+  Future<void> _generatePdf(dynamic jobWithCustomer) async {
+    try {
+      final job = jobWithCustomer.job;
+      final customer = jobWithCustomer.customer;
+      
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('PDF Oluşturuluyor...'),
+            ],
+          ),
+        ),
+      );
+
+      final lineItems = await ref.read(jobDaoProvider).getJobLineItems(job.id);
+      final settings = await ref.read(settingsDaoProvider).getSettings();
+      
+      final pdfService = ref.read(pdfServiceProvider);
+      final pdfBytes = await pdfService.generateProposalPdf(
+        job: job,
+        customer: customer,
+        lineItems: lineItems,
+        settings: settings ?? AppSetting(id: 1),
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        await pdfService.previewPdf(context, pdfBytes, job.title);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e')),
+        );
       }
     }
   }

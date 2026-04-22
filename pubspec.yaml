@@ -38,6 +38,9 @@ dependencies:
 
   # Notifications
   flutter_local_notifications: ^17.2.4
+  
+  # Ads
+  google_mobile_ads: ^5.0.0
   timezone: ^0.9.4
 
   # Utilities
