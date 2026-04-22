@@ -199,17 +199,30 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
   }
 
   void _showRewardedAdAndGeneratePdf(dynamic jobWithCustomer) {
+    bool _adHandled = false;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => const Center(child: CircularProgressIndicator()),
     );
 
+    // Timeout: 5 saniye içinde reklam yüklenmezse direkt PDF oluştur
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!_adHandled && mounted) {
+        _adHandled = true;
+        Navigator.pop(context);
+        _generatePdf(jobWithCustomer);
+      }
+    });
+
     RewardedInterstitialAd.load(
       adUnitId: AdHelper.pdfRewardedAdUnitId,
       request: const AdRequest(),
       rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
         onAdLoaded: (ad) {
+          if (_adHandled) { ad.dispose(); return; }
+          _adHandled = true;
           Navigator.pop(context); // Close loading dialog
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
@@ -226,6 +239,8 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> with SingleTi
           });
         },
         onAdFailedToLoad: (error) {
+          if (_adHandled) return;
+          _adHandled = true;
           debugPrint('RewardedInterstitialAd failed to load: $error');
           Navigator.pop(context); // Close loading dialog
           _generatePdf(jobWithCustomer); // Proceed even if ad fails
