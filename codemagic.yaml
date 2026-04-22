@@ -8,6 +8,9 @@ workflows:
       xcode: 16.2
       cocoapods: default
     scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
       - name: Set up code signing
         script: |
           keychain initialize
@@ -19,9 +22,6 @@ workflows:
             --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
           xcode-project use-profiles
-      - name: Get Flutter packages
-        script: |
-          flutter packages pub get
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install
