@@ -13,9 +13,7 @@ workflows:
         script: xcode-project use-profiles
       - name: Flutter pub get
         script: flutter packages pub get
-      - name: Pod install
-        script: |
-          cd ios && pod install --repo-update
+
       - name: Build iOS Release
         script: |
           flutter build ipa \
