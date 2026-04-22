@@ -18,15 +18,15 @@ workflows:
           app-store-connect fetch-signing-files "com.usta360pro2.com" --type IOS_APP_STORE --create
           keychain initialize
           keychain add-certificates
-          xcode-project use-profiles
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install
       - name: Flutter build (no codesign)
         script: |
           flutter build ios --release --no-codesign
-      - name: Build signed IPA
+      - name: Apply profiles and build IPA
         script: |
+          xcode-project use-profiles
           xcode-project build-ipa \
             --workspace ios/Runner.xcworkspace \
             --scheme Runner
